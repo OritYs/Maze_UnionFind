@@ -24,29 +24,22 @@ public class Maze {
      */
     public Maze(String fileName, Color c) {
         image = new DisplayImage(fileName);
-
-        for (int i = 0; i < image.width(); i++) {
-            for (int j = 0; j < image.height(); j++) {
-                if (image.isRed(i, j)) {
-                    System.out.println("(" + i + "," + j + ")");
-                    if (startX == 0 && startY == 0) {
-                        startX = i;
-                        startY = j;
-                    } else {
-                        endX = i;
-                        endY = j;
-                    }
-                }
-            }
-
-        }
-        image.set(startX, startY, c);
-        image.set(endX, endY, c);
-
         uf = new UnionFind(image.height() * image.width());
-        // decomposes into connected components
+
         for (int x = 0; x < image.width(); x++) {
             for (int y = 0; y < image.height(); y++) {
+                if (image.isRed(x, y)) {
+                    if (startX == 0 && startY == 0) {
+                        startX = x;
+                        startY = y;
+                        image.set(startX, startY, c);
+                    } else {
+                        endX = x;
+                        endY = y;
+                        image.set(endX, endY, c);
+                    }
+                }
+                // decomposes into connected components
                 if (x + 1 < image.width()) {
                     connect(x, y, x + 1, y);
                 }
@@ -55,7 +48,9 @@ public class Maze {
                     connect(x, y, x, y + 1);
                 }
             }
+
         }
+
     }
 
     /**
@@ -86,8 +81,11 @@ public class Maze {
         int firstPointID = pixelToId(x1, y1);
         int secondPointID = pixelToId(x2, y2);
 
-        if (image.isOn(x1, y1) == (image.isOn(x2, y2)) && uf.find(firstPointID) != uf.find(secondPointID)) {
-            uf.union(firstPointID, secondPointID);
+        int firstParent = uf.find(firstPointID);
+        int secondParent = uf.find(secondPointID);
+
+        if (image.isOn(x1, y1) == (image.isOn(x2, y2)) && firstParent != secondParent) {
+            uf.union(firstParent, secondParent);
         }
     }
 
@@ -114,7 +112,6 @@ public class Maze {
      * @return the number of components in the image
      */
     public int getNumComponents() {
-        //your code comes here
         return uf.numSets;
     }
 
@@ -170,7 +167,8 @@ public class Maze {
      */
     public static void main(String[] args) {
 
-        Maze maze = new Maze(args[0], Color.black);
+        Maze maze = new Maze("maze images/maze3.png", Color.white);
+//        Maze maze = new Maze(args[0], Color.black);
 
         System.out.println(maze.mazeHasSolution());
 
